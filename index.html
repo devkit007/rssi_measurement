@@ -1,100 +1,25 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta http-equiv="Permissions-Policy" content="interest-cohort=()"/>
-    <title>RSSI Plot</title>
-    <script src="https://cdn.jsdelivr.net/npm/@serialport/stream"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@serialport/repl"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@serialport/terminal"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@serialport/bindings"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@serialport/parser-readline"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@serialport/await-queue"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@serialport/usb"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@serialport/webusb"></script>
+    <meta charset='utf-8'>
+    <meta http-equiv='X-UA-Compatible' content='IE=edge'>
+    <title>Page Title</title>
+    <meta name='viewport' content='width=device-width, initial-scale=1'>
+    <!-- <link rel='stylesheet' type='text/css' media='screen' href='main.css'> -->
+    <script src='main.js'></script>
 </head>
 <body>
-    <div id="plot"></div>
-    <textarea id="output" rows="6" cols="50"></textarea>
-    <button id="exportButton">Export Data</button>
+    <h1>Serial Port Communication</h1>
+    <!-- Element mit der ID "notSupported" -->
+    <p id="notSupported" class="hidden">Serial port communication is not supported in this browser.</p>
 
-    <script>
-        const plotDiv = document.getElementById('plot');
-        const outputText = document.getElementById('output');
-        const exportButton = document.getElementById('exportButton');
-
-        const xData = [];
-        const rssiData = [];
-        const counterData = [];
-        const batteryData = [];
-        const windowSize = 10;
-
-        const processSerialData = (line) => {
-            try {
-                const [counter, addr, battery, rssi] = line.split(',').map(Number);
-
-                const index = xData.indexOf(addr);
-                if (index !== -1) {
-                    rssiData[index].push(rssi);
-                    counterData[index] = counter;
-                    batteryData[index] = battery;
-                } else {
-                    xData.push(addr);
-                    rssiData.push([rssi]);
-                    counterData.push(counter);
-                    batteryData.push(battery);
-                }
-
-                updatePlot();
-                outputText.value += `${counter}, ${addr}, ${battery}, ${rssi}\n`;
-                outputText.scrollTop = outputText.scrollHeight;
-            } catch (error) {
-                console.error('Error processing serial data:', error);
-            }
-        };
-
-        const updatePlot = () => {
-            // Code zur Aktualisierung des Diagramms hier einfügen
-        };
-
-        const exportData = () => {
-            const data = [];
-            for (let i = 0; i < counterData.length; i++) {
-                data.push(`${counterData[i]}, ${xData[i]}, ${batteryData[i]}, ${rssiData[i]}`);
-            }
-            const blob = new Blob(['Counter, Address, Battery, RSSI\n', data.join('\n')], { type: 'text/plain' });
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = 'data.txt';
-            document.body.appendChild(a);
-            a.click();
-            document.body.removeChild(a);
-            URL.revokeObjectURL(url);
-        };
-
-        exportButton.addEventListener('click', exportData);
-
-        (async () => {
-            const port = await navigator.serial.requestPort();
-            await port.open({ baudRate: 115200 });
-            const reader = port.readable.getReader();
-
-            while (true) {
-                const { value, done } = await reader.read();
-                if (done) {
-                    reader.releaseLock();
-                    break;
-                }
-                const decoder = new TextDecoderStream();
-                const inputStream = value.pipeThrough(decoder);
-                const reader = inputStream.getReader();
-                const readString = await reader.read();
-                processSerialData(readString.value.trim());
-            }
-        })();
-    </script>
+    <!-- Ihr bestehender Code hier -->
+    <label for="portInput">Enter COM Port:</label>
+    <input type="text" id="portInput" placeholder="e.g., COM3"><br><br>
+    <button id="connectButton">Connect</button><br><br>
+    <textarea id="output" rows="10" cols="50" readonly></textarea><br><br>
+    <label for="textInput">Enter text to send:</label>
+    <input type="text" id="textInput">
+    <button id="sendButton">Send</button>
 </body>
 </html>
-
